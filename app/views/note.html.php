@@ -258,7 +258,7 @@ $eleves=$eleves ?? [];
   <div class="user-role"><?php echo $utilisateur['role'] ?></div>
   
 </div>
-    <a href="http://localhost:8000/login" class="btn btn-primary btn-submit" style="text-decoration: none;">
+    <a href="http://localhost:8000/logout" class="btn btn-primary btn-submit" style="text-decoration: none;">
     Déconnexion
 </a>
 
@@ -294,7 +294,7 @@ $eleves=$eleves ?? [];
 
             <?php  foreach ($classes as $classe):?>
 
-          <option value="<?php echo $classe['id']; ?>"><?php echo $classe['nomclasse']?></option>
+          <option value="<?php echo $classe['id']; ?>" <?php echo (isset($_POST['classe']) && $_POST['classe']==$classe['id']) ? 'selected' : '' ?>><?php echo $classe['nomclasse']?></option>
                     <?php endforeach ?>
 
         </select>
@@ -311,7 +311,7 @@ $eleves=$eleves ?? [];
 
         <?php foreach ($matieres as $matiere): ?>
 
-        <option value="<?php echo $matiere['id']?>"><?php echo $matiere['nommatiere'] ?></option>
+        <option value="<?php echo $matiere['id']?>" <?php echo ($matiere_id==$matiere['id']) ? 'selected' : '' ?>><?php echo $matiere['nommatiere'] ?></option>
         <?php endforeach; ?>
       </select>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
@@ -327,7 +327,7 @@ $eleves=$eleves ?? [];
 
          <?php foreach ($periodes as $periode): ?>
 
-        <option value="<?php echo $periode['id'] ?>"><?php echo $periode['nomperiode'] ?></option>
+        <option value="<?php echo $periode['id'] ?>" <?php echo ($periode_id==$periode['id']) ? 'selected' : '' ?>><?php echo $periode['nomperiode'] ?></option>
         <?php endforeach; ?>
         </select>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
@@ -407,165 +407,6 @@ $eleves=$eleves ?? [];
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
   <span id="toastText">Enregistré</span>
 </div>
-
-<script>
-(function(){
-  const students = [
-    { id: "JE-26002", name: "Moussa Fall",   d1: 15, d2: 14, comp: 16 },
-    { id: "JE-26003", name: "Fatou Ndiaye",  d1: 12, d2: 13, comp: 12 },
-    { id: "JE-26004", name: "Ibrahima Diallo", d1: 17, d2: 16, comp: 18 },
-    { id: "JE-26005", name: "Khadija Sow",   d1: 10, d2: 11, comp: 12 },
-    { id: "JE-26006", name: "Ousmane Faye",  d1: 14, d2: 15, comp: 15 },
-  ];
-
-  const tbody = document.getElementById('tbody');
-  const classAvgEl = document.getElementById('classAvg');
-  const filtersCard = document.getElementById('filtersCard');
-  const validateBtn = document.getElementById('validateBtn');
-  const toast = document.getElementById('toast');
-  const toastText = document.getElementById('toastText');
-
-  function initials(name){
-    return name.split(' ').map(w => w[0]).slice(0,2).join('').toUpperCase();
-  }
-
-  function appreciationFor(avg){
-    if (avg >= 16) return { label: 'Très bien', cls: '' };
-    if (avg >= 14) return { label: 'Bien', cls: '' };
-    if (avg >= 12) return { label: 'Assez bien', cls: '' };
-    if (avg >= 10) return { label: 'Passable', cls: 'mid' };
-    return { label: 'Insuffisant', cls: 'low' };
-  }
-
-  function computeAvg(d1, d2, comp){
-    const vals = [d1, d2, comp].filter(v => !isNaN(v));
-    if (!vals.length) return 0;
-    return vals.reduce((a,b) => a+b, 0) / vals.length;
-  }
-
-  function render(){
-    tbody.innerHTML = '';
-    students.forEach((s, i) => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>
-          <div class="eleve-cell">
-            <div class="idx" style="display:inline-block;width:18px;">${i+1}</div>
-            <div class="avatar">${initials(s.name)}</div>
-            <div>
-              <div class="eleve-name">${s.name}</div>
-              <div class="eleve-id">${s.id}</div>
-            </div>
-          </div>
-        </td>
-        <td><input class="grade-input" type="number" min="0" max="20" step="0.5" value="${s.d1}" data-field="d1" data-idx="${i}"></td>
-        <td><input class="grade-input" type="number" min="0" max="20" step="0.5" value="${s.d2}" data-field="d2" data-idx="${i}"></td>
-        <td><input class="grade-input comp" type="number" min="0" max="20" step="0.5" value="${s.comp}" data-field="comp" data-idx="${i}"></td>
-        <td><span class="moyenne-val" data-moy="${i}"></span></td>
-        <td><span class="pill" data-app="${i}"><span class="pdot"></span><span class="app-label"></span></span></td>
-      `;
-      tbody.appendChild(tr);
-    });
-    updateAll();
-  }
-
-  function updateAll(){
-    let total = 0;
-    students.forEach((s, i) => {
-      const avg = computeAvg(s.d1, s.d2, s.comp);
-      const moyEl = tbody.querySelector(`[data-moy="${i}"]`);
-      moyEl.textContent = avg.toFixed(2);
-      const app = appreciationFor(avg);
-      const pill = tbody.querySelector(`[data-app="${i}"]`);
-      pill.classList.remove('low','mid');
-      if (app.cls) pill.classList.add(app.cls);
-      pill.querySelector('.app-label').textContent = app.label;
-      total += avg;
-    });
-    const classAvg = total / students.length;
-    classAvgEl.innerHTML = classAvg.toFixed(2) + '<span>/20</span>';
-  }
-
-  tbody.addEventListener('input', (e) => {
-    const t = e.target;
-    if (!t.classList.contains('grade-input')) return;
-    const idx = Number(t.dataset.idx);
-    const field = t.dataset.field;
-    let val = parseFloat(t.value);
-    if (isNaN(val)) val = 0;
-    if (val < 0) val = 0;
-    if (val > 20) val = 20;
-    t.classList.toggle('invalid', t.value !== '' && (parseFloat(t.value) < 0 || parseFloat(t.value) > 20));
-    students[idx][field] = val;
-    updateAll();
-  });
-
-  // Navigation clavier simple (flèches gauche/droite/haut/bas) entre champs de notes
-  tbody.addEventListener('keydown', (e) => {
-    if (!e.target.classList.contains('grade-input')) return;
-    const inputs = Array.from(tbody.querySelectorAll('.grade-input'));
-    const pos = inputs.indexOf(e.target);
-    let next = -1;
-    if (e.key === 'ArrowRight') next = pos + 1;
-    if (e.key === 'ArrowLeft') next = pos - 1;
-    if (e.key === 'ArrowDown') next = pos + 3;
-    if (e.key === 'ArrowUp') next = pos - 3;
-    if (next >= 0 && next < inputs.length){
-      e.preventDefault();
-      inputs[next].focus();
-      inputs[next].select();
-    }
-  });
-
-  function showToast(text){
-    toastText.textContent = text;
-    toast.classList.add('show');
-    clearTimeout(showToast._t);
-    showToast._t = setTimeout(() => toast.classList.remove('show'), 2400);
-  }
-
-  // ---- Bouton Valider (après le champ Période) ----
-  validateBtn.addEventListener('click', () => {
-    const classe = document.getElementById('classe').value;
-    const matiere = document.getElementById('matiere').value;
-    const periode = document.getElementById('periode').value;
-
-    filtersCard.classList.add('flash');
-    setTimeout(() => filtersCard.classList.remove('flash'), 600);
-
-    validateBtn.classList.add('is-valid');
-    validateBtn.innerHTML = `
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-      Sélection validée`;
-    setTimeout(() => {
-      validateBtn.classList.remove('is-valid');
-      validateBtn.innerHTML = `
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-        Valider`;
-    }, 1800);
-
-    showToast(`Sélection validée · ${classe} · ${matiere} · ${periode}`);
-  });
-
-  // ---- Enregistrer ----
-  document.getElementById('saveBtn').addEventListener('click', () => {
-    showToast('Notes enregistrées · moyennes recalculées');
-  });
-
-  // ---- Importer (placeholder) ----
-  document.getElementById('importBtn').addEventListener('click', () => {
-    showToast('Import de notes — sélectionnez un fichier CSV');
-  });
-
-  ['classe','matiere','periode'].forEach(id => {
-    document.getElementById(id).addEventListener('change', () => {
-      validateBtn.classList.remove('is-valid');
-    });
-  });
-
-  render();
-})();
-</script>
 
 </body>
 </html>
