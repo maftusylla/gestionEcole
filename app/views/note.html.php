@@ -5,6 +5,7 @@ $matieres=$matieres?? [];
 $moyenne=$moyenne?? 0 ;
 $utilisateur=$utilisateur ?? [];
 $anneeActive=$anneeActive ?? [];
+$eleves=$eleves ?? [];
 
 
 ?>
@@ -255,7 +256,13 @@ $anneeActive=$anneeActive ?? [];
 <div class="user-meta">
   <div class="user-name"><?php echo $utilisateur['prenom']." ".$utilisateur['nom'] ?></div>
   <div class="user-role"><?php echo $utilisateur['role'] ?></div>
+  
 </div>
+    <a href="http://localhost:8000/login" class="btn btn-primary btn-submit" style="text-decoration: none;">
+    Déconnexion
+</a>
+
+
 </header>
 
 <div class="page">
@@ -283,7 +290,7 @@ $anneeActive=$anneeActive ?? [];
       <label for="classe_id">Classe</label>
         <div class="select-wrap">
           <select id="classe_id" name="classe">
-                <option value="veuillez choisir"></option>
+            <option>veuillez choisir</option>
 
             <?php  foreach ($classes as $classe):?>
 
@@ -300,7 +307,7 @@ $anneeActive=$anneeActive ?? [];
       <label for="matiere">Matière</label>
       <div class="select-wrap">
         <select id="matiere" name="matiere">
-                <option value="veuillez choisir"></option>
+            <option>veuillez choisir</option>
 
         <?php foreach ($matieres as $matiere): ?>
 
@@ -316,7 +323,7 @@ $anneeActive=$anneeActive ?? [];
       <label for="periode">Période</label>
       <div class="select-wrap">
         <select id="periode" name="periode">
-            <option value="veuillez choisir"></option>
+            <option>veuillez choisir</option>
 
          <?php foreach ($periodes as $periode): ?>
 
@@ -358,8 +365,36 @@ $anneeActive=$anneeActive ?? [];
         </tr>
       </thead>
       <tbody id="tbody">
-        <!-- lignes générées par JS -->
-      </tbody>
+<?php $i=1; foreach($eleves as $eleve):
+    $moy = $eleve['moyenne'];
+    if($moy>=16){ $appreciation='Très bien'; $pillClass=''; }
+    elseif($moy>=14){ $appreciation='Bien'; $pillClass=''; }
+    elseif($moy>=12){ $appreciation='Assez bien'; $pillClass=''; }
+    elseif($moy>=10){ $appreciation='Passable'; $pillClass='mid'; }
+    else { $appreciation='Insuffisant'; $pillClass='low'; }
+?>
+  <tr>
+    <td>
+      <div class="eleve-cell">
+        <div class="idx" style="display:inline-block;width:18px;"><?php echo $i ?></div>
+        <div class="avatar"><?php echo strtoupper(substr($eleve['prenom'],0,1).substr($eleve['nom'],0,1)) ?></div>
+        <div>
+          <div class="eleve-name"><?php echo $eleve['prenom']." ".$eleve['nom'] ?></div>
+          <div class="eleve-id"><?php echo $eleve['matricule'] ?></div>
+        </div>
+      </div>
+    </td>
+    <td><input class="grade-input" type="number" min="0" max="20" step="0.5" value="<?php echo $eleve['devoir1'] ?>" data-field="d1"></td>
+    <td><input class="grade-input" type="number" min="0" max="20" step="0.5" value="<?php echo $eleve['devoir2'] ?>" data-field="d2"></td>
+    <td><input class="grade-input comp" type="number" min="0" max="20" step="0.5" value="<?php echo $eleve['composition'] ?>" data-field="comp"></td>
+    <td><span class="moyenne-val"><?php echo $moy ?></span></td>
+    <td><span class="pill <?php echo $pillClass ?>"><span class="pdot"></span><span class="app-label"><?php echo $appreciation ?></span></span></td>
+  </tr>
+<?php $i++; endforeach; ?>
+<?php if(empty($eleves)): ?>
+  <tr><td colspan="6">Aucun élève à afficher — sélectionnez une classe, une matière et une période.</td></tr>
+<?php endif; ?>
+</tbody>
       <tfoot>
         <tr><td colspan="6">Navigation clavier disponible · valeurs limitées de 0 à 20</td></tr>
       </tfoot>

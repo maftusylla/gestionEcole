@@ -15,17 +15,10 @@ FROM (
     AND ev.matiere_id = :matiere_id
     AND ev.periode_id = :periode_id
     AND a.actif = 1
+    AND (devoir1 IS NOT NULL OR devoir2 IS NOT NULL OR composition IS NOT NULL)
     GROUP BY inscription_id
 ) sub;
 ";
-
-
-
-
-
-
-
-
 
 $result=executeQuery($pdo,$sql,[
         'classe_id' => $classeId,
